@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using System.Xml.Serialization;
 
 namespace WinForms_2_2
@@ -10,35 +11,32 @@ namespace WinForms_2_2
             InitializeComponent();
         }
 
+
         private void save_Click(object sender, EventArgs e)
         {
             DateTime dateOnly = date_dtp.Value;
             User user = new()
             {
-                Name = name_txt.Text,
-                Surname = surname_txt.Text,
-                Father = father_txt.Text,
-                Country = country_txt.Text,
-                City = city_txt.Text,
-                Phone = phone_txt.Text,
+                Name = name_txt.Text.removeStart(),
+                Surname = surname_txt.Text.removeStart(),
+                Father = father_txt.Text.removeStart(),
+                Country = country_txt.Text.removeStart(),
+                City = city_txt.Text.removeStart(),
+                Phone = phone_txt.Text,//.removeStart(),
                 BirthDate = dateOnly,
                 IsMale = male_rb.Checked
             };
-            string path = Environment.GetFolderPath(0) + "\\" + user.Name + ".json";
-            MessageBox.Show(path);
+            string path = user.Name + ".json";
 
-            using FileStream file = new(path, FileMode.CreateNew);
-            file.Dispose();
+            File.WriteAllText(path, JsonSerializer.Serialize(user));
 
-            var jsonString = System.Text.Json.JsonSerializer.Serialize(user);
-            File.WriteAllText(path, jsonString);
-
+            MessageBox.Show("Succesfully saved user...", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             ClearTextBoxes();
         }
 
         private void load_Click(object sender, EventArgs e)
         {
-            string name = loadName_txt.Text;
+            string name = loadName_txt.Text.removeStart();
             User user = null;
             string path = name + ".json";
 
@@ -54,8 +52,7 @@ namespace WinForms_2_2
                 return;
                 throw;
             }
-            using FileStream fs = new FileStream(path, FileMode.Open);
-            user = System.Text.Json.JsonSerializer.Deserialize<User>(fs);
+            user = JsonSerializer.Deserialize<User>(File.ReadAllText(path))!;
 
 
             if (user != null)
